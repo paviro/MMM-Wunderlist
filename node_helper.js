@@ -17,7 +17,7 @@ module.exports = NodeHelper.create({
     this.config.timers = []
   },
   get_lists: function(callback) {
-    request({url: 'https://a.wunderlist.com/api/v1/lists', method: 'GET', headers: { 'X-Access-Token': this.config.access_token,'X-Client-ID': this.config.client_id}}, function (error, response, body) {
+    request({url: 'https://a.wunderlist.com/api/v1/lists', method: 'GET', headers: { 'X-Access-Token': this.config.accessToken,'X-Client-ID': this.config.clientID}}, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         var lists = {};
         for (var i = 0; i < JSON.parse(body).length; i++) {
@@ -29,7 +29,7 @@ module.exports = NodeHelper.create({
   },
 
   get_tasks: function(id, listname, callback) {
-    request({url: 'https://a.wunderlist.com/api/v1/tasks?list_id=' + id, method: 'GET', headers: { 'X-Access-Token': this.config.access_token,'X-Client-ID': this.config.client_id}}, function (error, response, body) {
+    request({url: 'https://a.wunderlist.com/api/v1/tasks?list_id=' + id, method: 'GET', headers: { 'X-Access-Token': this.config.accessToken,'X-Client-ID': this.config.clientID}}, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         var tasks = []
         for (var i = 0; i < JSON.parse(body).length; i++) {
@@ -68,8 +68,8 @@ module.exports = NodeHelper.create({
         } 
       }
       this.config.lists = this.arrayUnique(this.config.lists.concat(payload.lists));
-      this.config.access_token = payload.access_token
-      this.config.client_id = payload.client_id
+      this.config.accessToken = payload.accessToken
+      this.config.clientID = payload.clientID
       this.config.interval = payload.interval * 1000
       this.get_lists(function (data) {
         for (var i = 0; i < self.config.lists.length; i++) {
