@@ -51,7 +51,7 @@ The following properties can be configured:
 		</tr>
 		<tr>
 			<td><code>lists</code></td>
-			<td>Array of lists you want to display. <b>Example:</b> <code>["inbox", "ViRO Entertainment"]</code><br>
+			<td>Array of lists you want to display. <br><b>Example:</b> <code>["inbox", "ViRO Entertainment"]</code><br>
 				<br><b>Possible values:</b> <code>array</code>
 				<br><b>Default value:</b> <code>["inbox"]</code>
 			</td>
