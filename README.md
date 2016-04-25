@@ -37,14 +37,14 @@ The following properties can be configured:
 	<tbody>
 		<tr>
 			<td><code>accessToken</code></td>
-			<td>Your Wunderlist access token, you can get it [here](https://developer.wunderlist.com/apps/new).<br>
+			<td>Your Wunderlist access token, you can get it <a href="https://developer.wunderlist.com/apps/new">here</a>.<br>
 				<br><b>Possible values:</b> <code>string</code>
 				<br><b>Default value:</b> <code>none</code>
 			</td>
 		</tr>
 		<tr>
 			<td><code>clientID</code></td>
-			<td>Your Wunderlist client id, you can get it [here](https://developer.wunderlist.com/apps/new).<br>
+			<td>Your Wunderlist client id, you can get it <a href="https://developer.wunderlist.com/apps/new">here</a>.<br>
 				<br><b>Possible values:</b> <code>string</code>
 				<br><b>Default value:</b> <code>none</code>
 			</td>
