@@ -94,7 +94,6 @@ The following properties can be configured:
 ## Dependencies
 - [request](https://www.npmjs.com/package/request) (installed via `npm install`)
 
-## Licenses
 The MIT License (MIT)
 =====================
 
