@@ -35,8 +35,6 @@ var Fetcher = function(listID, reloadInterval, accessToken, clientID) {
  var fetchTodos = function() {
 	clearTimeout(reloadTimer);
 	reloadTimer = null;
-	items = [];
-
 
 	request({
 		url: "https://a.wunderlist.com/api/v1/tasks?list_id=" + listID,
@@ -48,6 +46,7 @@ var Fetcher = function(listID, reloadInterval, accessToken, clientID) {
 	 },
 	 function(error, response, body) {
 		if (!error && response.statusCode == 200) {
+         items = [];
 		 for (var i = 0; i < JSON.parse(body).length; i++) {
 			items.push(JSON.parse(body)[i].title);
 		 }
