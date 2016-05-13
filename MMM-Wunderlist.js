@@ -12,7 +12,7 @@ Module.register("MMM-Wunderlist", {
  defaults: {
 	maximumEntries: 10,
 	lists: ["inbox"],
-	interval: 2,
+	interval: 60,
 	fade: true,
 	fadePoint: 0.25
  },

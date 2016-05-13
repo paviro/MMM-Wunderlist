@@ -53,7 +53,7 @@ module.exports = NodeHelper.create({
 
 	 fetcher.onError(function(fetcher, error) {
 		self.sendSocketNotification("FETCH_ERROR", {
-		 url: fetcher.url(),
+		 url: fetcher.id(),
 		 error: error
 		});
 	 });
