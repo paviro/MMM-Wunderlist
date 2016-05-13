@@ -88,9 +88,6 @@ The following properties can be configured:
 	</tbody>
 </table>
 
-## Important Notes
-- The node side of this script is proably not really efficient, I am glad it works at all. If you want to improve it, I am happy about pull requests!
-
 ## Dependencies
 - [request](https://www.npmjs.com/package/request) (installed via `npm install`)
 
