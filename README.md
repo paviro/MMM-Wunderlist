@@ -57,6 +57,14 @@ The following properties can be configured:
 				<br><b>Example:</b> <code>["inbox", "ViRO Entertainment"]</code>
 			</td>
 		</tr>
+		</tr>
+		<tr>
+			<td><code>order</code></td>
+			<td>Order of tasks on the list. <br>
+				<br><b>Possible values:</b> <code>"normal"</code>, <code>"reversed"</code>
+				<br><b>Default value:</b> <code>"normal"</code>
+			</td>
+		</tr>
 		<tr>
 			<td><code>maximumEntries</code></td>
 			<td>Maximum number of todos to be shown.<br>
