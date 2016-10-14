@@ -11,6 +11,7 @@ Module.register("MMM-Wunderlist", {
 
  defaults: {
 	maximumEntries: 10,
+	order: "normal",
 	lists: ["inbox"],
 	interval: 60,
 	fade: true,
@@ -43,8 +44,11 @@ Module.register("MMM-Wunderlist", {
 		var list = this.tasks[this.config.lists[i]];
 
 		for (var todo in list) {
-		 tasksShown.push(list[todo]);
-
+                 if(this.config.order == "reversed"){
+                   tasksShown.push(list[todo]);
+                 } else {
+                   tasksShown.unshift(list[todo]);
+                 }
 		}
 	 }
 	}
