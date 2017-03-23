@@ -1,11 +1,13 @@
+"use strict"
+
 /* Magic Mirror
  * Fetcher
  *
- * By Michael Teeuw http://michaelteeuw.nl edited for Wunderlist by Paul-Vincent Roll
+ * By Michael Teeuw http://michaelteeuw.nl edited for Wunderlist by Marcin Bielecki
  * MIT Licensed.
  */
 
-var request = require("request");
+var WunderlistSDK = require('wunderlist');
 
 /* Fetcher
  * Responsible for requesting an update on the set interval and broadcasting the data.
@@ -14,108 +16,104 @@ var request = require("request");
  * attribute reloadInterval number - Reload interval in milliseconds.
  */
 
-var Fetcher = function(listID, reloadInterval, accessToken, clientID) {
- var self = this;
- if (reloadInterval < 1000) {
-	reloadInterval = 1000;
- }
+var Fetcher = function (listID, reloadInterval, accessToken, clientID) {
+  var self = this;
+  if (reloadInterval < 1000) {
+    reloadInterval = 1000;
+  }
 
- var reloadTimer = null;
- var items = [];
+  var reloadTimer = null;
+  var items = [];
 
- var fetchFailedCallback = function() {};
- var itemsReceivedCallback = function() {};
+  var fetchFailedCallback = function () { };
+  var itemsReceivedCallback = function () { };
 
- /* private methods */
+  /* private methods */
 
- /* fetchTodos()
-	* Request the new items.
-	*/
+  /* fetchTodos()
+   * Request the new items.
+   */
 
- var fetchTodos = function() {
-	clearTimeout(reloadTimer);
-	reloadTimer = null;
+  var fetchTodos = function () {
+    clearTimeout(reloadTimer);
+    reloadTimer = null;
 
-	request({
-		url: "https://a.wunderlist.com/api/v1/tasks?list_id=" + listID,
-		method: "GET",
-		headers: {
-		 "X-Access-Token": accessToken,
-		 "X-Client-ID": clientID
-		}
-	 },
-	 function(error, response, body) {
-		if (!error && response.statusCode == 200) {
-         items = [];
-		 for (var i = 0; i < JSON.parse(body).length; i++) {
-			items.push(JSON.parse(body)[i].title);
-		 }
-		 self.broadcastItems();
-		 scheduleTimer();
-		}
-	 });
+    var WunderlistAPI = new WunderlistSDK({
+      accessToken: accessToken,
+      clientID: clientID
+    });
 
- };
+    WunderlistAPI.http.tasks.forList(listID)
+      .done(function (tasks) {
+        items = []
+        tasks.forEach(function (task, i) {
+          items[i] = task.title
+        })
+        self.broadcastItems();
+        scheduleTimer();
+      })
+      .fail(function (resp, code) {
+        console.error('there was a Wunderlist problem', resp, code);
+      });
 
- /* scheduleTimer()
-	* Schedule the timer for the next update.
-	*/
+  };
 
- var scheduleTimer = function() {
-	//console.log('Schedule update timer.');
-	clearTimeout(reloadTimer);
-	reloadTimer = setTimeout(function() {
-	 fetchTodos();
-	}, reloadInterval);
- };
+  /* scheduleTimer()
+   * Schedule the timer for the next update.
+   */
 
- /* public methods */
+  var scheduleTimer = function () {
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(function () {
+      fetchTodos();
+    }, reloadInterval);
+  };
 
- /* setReloadInterval()
-	* Update the reload interval, but only if we need to increase the speed.
-	*
-	* attribute interval number - Interval for the update in milliseconds.
-	*/
- this.setReloadInterval = function(interval) {
-	if (interval > 1000 && interval < reloadInterval) {
-	 reloadInterval = interval;
-	}
- };
+  /* public methods */
 
- /* startFetch()
-	* Initiate fetchTodos();
-	*/
- this.startFetch = function() {
-	fetchTodos();
- };
+  /* setReloadInterval()
+   * Update the reload interval, but only if we need to increase the speed.
+   *
+   * attribute interval number - Interval for the update in milliseconds.
+   */
+  this.setReloadInterval = function (interval) {
+    if (interval > 1000 && interval < reloadInterval) {
+      reloadInterval = interval;
+    }
+  };
 
- /* broadcastItems()
-	* Broadcast the exsisting items.
-	*/
- this.broadcastItems = function() {
-	if (items.length <= 0) {
-	 //console.log('No items to broadcast yet.');
-	 return;
-	}
-	//console.log('Broadcasting ' + items.length + ' items.');
-	itemsReceivedCallback(self);
- };
+  /* startFetch()
+   * Initiate fetchTodos();
+   */
+  this.startFetch = function () {
+    fetchTodos();
+  };
 
- this.onReceive = function(callback) {
-	itemsReceivedCallback = callback;
- };
+  /* broadcastItems()
+   * Broadcast the exsisting items.
+   */
+  this.broadcastItems = function () {
+    if (items.length <= 0) {
+      return;
+    }
+    itemsReceivedCallback(self);
+  };
 
- this.onError = function(callback) {
-	fetchFailedCallback = callback;
- };
+  this.onReceive = function (callback) {
+    itemsReceivedCallback = callback;
+  };
 
- this.id = function() {
-	return listID;
- };
+  this.onError = function (callback) {
+    fetchFailedCallback = callback;
+  };
 
- this.items = function() {
-	return items;
- };
+  this.id = function () {
+    return listID;
+  };
+
+  this.items = function () {
+    return items;
+  };
 };
 
 module.exports = Fetcher;
