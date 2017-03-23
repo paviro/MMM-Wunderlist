@@ -1,7 +1,7 @@
 {
   "name": "Magic-Mirror-Module-Wunderlist",
-  "version": "1.0.0",
   "description": "Wunderlist module for the Magic Mirror.",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paviro/MMM-Wunderlist"
@@ -13,13 +13,13 @@
     "module"
   ],
   "author": "Paul-Vincent Roll",
-  "contributors": "https://github.com/paviro/MMM-Wunderlist/graphs/contributors",
+  "contributors": [ "https://github.com/paviro/MMM-Wunderlist/graphs/contributors" ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/paviro/MMM-Wunderlist/issues"
   },
   "homepage": "https://github.com/paviro/MMM-Wunderlist#readme",
   "dependencies": {
-    "request": "latest"
-    }
+    "wunderlist": "latest"
+  }
 }
