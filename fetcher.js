@@ -45,10 +45,7 @@ var Fetcher = function (listID, reloadInterval, accessToken, clientID) {
 
     WunderlistAPI.http.tasks.forList(listID)
       .done(function (tasks) {
-        items = []
-        tasks.forEach(function (task, i) {
-          items[i] = task.title
-        })
+        items = tasks
         self.broadcastItems();
         scheduleTimer();
       })

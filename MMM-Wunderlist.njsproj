@@ -16,6 +16,9 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Compile Include="String.format.js">
+      <SubType>Code</SubType>
+    </Compile>
     <Content Include=".eslintrc.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />

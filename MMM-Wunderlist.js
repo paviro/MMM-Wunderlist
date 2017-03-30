@@ -24,7 +24,8 @@ Module.register("MMM-Wunderlist", {
     if (notification === "TASKS") {
       this.tasks = payload
       this.updateDom(3000);
-    } else if (notification === "STARTED") {
+    }
+    else if (notification === "STARTED") {
       console.log(notification);
       this.sendSocketNotification("addLists", this.config.lists);
     }
@@ -47,42 +48,67 @@ Module.register("MMM-Wunderlist", {
         for (var todo in list) {
           if (this.config.order == "reversed") {
             tasksShown.push(list[todo]);
-          } else {
+          }
+          else {
             tasksShown.unshift(list[todo]);
           }
         }
       }
     }
     return tasksShown.slice(0, this.config.maximumEntries);
-
   },
+
+  getScripts: function () {
+    return [
+      'String.format.js'
+    ];
+  },
+
+  html: {
+    table: '<thead>{0}</thead><tbody>{1}</tbody>',
+    row: '<tr><td>{0}</td><td>{1}</td></tr>'
+  },
+
   getDom: function () {
+    var self = this;
     var wrapper = document.createElement("table");
     wrapper.className = "normal small light";
 
     var todos = this.getTodos();
 
+    var rows = []
+    todos.forEach(function (todo, i) {
+      rows[i] = self.html.row.format(todo.starred ? '*' : '', todo.title)
 
-    for (var i = 0; i < todos.length; i++) {
-      var titleWrapper = document.createElement("tr");
-      titleWrapper.innerHTML = todos[i];
-      titleWrapper.className = "title bright";
-      wrapper.appendChild(titleWrapper);
-
-      // Create fade effect by MichMich (MIT)
-      if (this.config.fade && this.config.fadePoint < 1) {
-        if (this.config.fadePoint < 0) {
-          this.config.fadePoint = 0;
+      // Create fade effect
+      if (self.config.fade && self.config.fadePoint < 1) {
+        if (self.config.fadePoint < 0) {
+          self.config.fadePoint = 0;
         }
-        var startingPoint = todos.length * this.config.fadePoint;
-        var steps = todos.length - startingPoint;
+        var startingPoint = todos.length * self.config.fadePoint;
         if (i >= startingPoint) {
-          var currentStep = i - startingPoint;
-          titleWrapper.style.opacity = 1 - (1 / steps * currentStep);
+          titleWrapper.style.opacity = 1 - (1 / todos.length - startingPoint * (i - startingPoint));
         }
       }
-      // End Create fade effect by MichMich (MIT)
-    }
+    });
+
+    /*
+      completed:false
+      created_at:"2017-03-14T07:43:37.172Z"
+      created_by_id:24499672
+      created_by_request_id:"16aab5bba3589ff71989:Tn5nR+oAAAA=:01d89465-74c4-4f22-8291-cdf54f9d472b:24499672:732"
+      id:2609249400
+      list_id:258688629
+      revision:1
+      starred:false
+      title:"5S524X"
+      type:"task"
+    */
+
+    wrapper.innerHTML = this.html.table.format(
+      this.html.row.format('', ''),
+      rows.join('')
+    )
 
     return wrapper;
   }
