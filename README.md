@@ -97,7 +97,7 @@ The following properties can be configured:
 </table>
 
 ## Dependencies
-- [request](https://www.npmjs.com/package/request) (installed via `npm install`)
+- [wunderlist](https://www.npmjs.com/package/wunderlist) (installed via `npm install`)
 
 The MIT License (MIT)
 =====================
