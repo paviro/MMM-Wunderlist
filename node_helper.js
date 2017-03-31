@@ -22,11 +22,25 @@ module.exports = NodeHelper.create({
   getLists: function (callback) {
     this.WunderlistAPI.http.lists.all()
       .done(function (lists) {
-        callback(lists)
+        callback(lists);
       })
       .fail(function (resp, code) {
-        console.error('there was a Wunderlist problem', resp, code);
+        console.error('there was a Wunderlist problem', code);
       });
+  },
+
+  getUsers: function (callback) {
+    this.WunderlistAPI.http.users.all()
+      .done(function (users) {
+        var ret = {};
+        users.forEach(function (user) {
+          ret[user.id] = user.name
+        });
+        callback(ret);
+      })
+      .fail(function (resp, code) {
+        console.error('there was a Wunderlist problem', code);
+      })
   },
 
   createFetcher: function (listID, list, reloadInterval) {
@@ -38,7 +52,7 @@ module.exports = NodeHelper.create({
       var self = this;
 
       console.log("Create new todo fetcher for list: " + list + " - Interval: " + reloadInterval);
-      fetcher = new Fetcher(listID, reloadInterval, this.config.accessToken, this.config.clientID);
+      fetcher = new Fetcher(listID, reloadInterval, this.config.accessToken, this.config.clientID, this.config.showAssignee);
 
       fetcher.onReceive(function (fetcher) {
         self.broadcastTodos();
@@ -76,16 +90,13 @@ module.exports = NodeHelper.create({
 
   // Subclass socketNotificationReceived received.
   socketNotificationReceived: function (notification, payload) {
+    const self = this
     if (notification === "CONFIG" && this.started == false) {
-      const self = this
-      this.config.interval = payload.interval
-      this.config.lists = payload.lists
-      this.config.accessToken = payload.accessToken
-      this.config.clientID = payload.clientID
+      this.config = payload
 
       this.WunderlistAPI = new WunderlistSDK({
-        accessToken: payload.accessToken,
-        clientID: payload.clientID
+        accessToken: self.config.accessToken,
+        clientID: self.config.clientID
       })
 
       this.getLists(function (data) {
@@ -95,7 +106,6 @@ module.exports = NodeHelper.create({
       self.started = true
     }
     else if (notification === "addLists") {
-      const self = this
       this.lists.forEach(function (currentValue) {
         if (self.config.lists.indexOf(currentValue.title) >= 0) {
           self.createFetcher(currentValue.id, currentValue.title, self.config.interval * 1000);
@@ -104,6 +114,12 @@ module.exports = NodeHelper.create({
     }
     else if (notification === "CONNECTED") {
       this.broadcastTodos()
+    }
+    else if (notification === 'getUsers') {
+      console.log(notification);
+      this.getUsers(function (data) {
+        self.sendSocketNotification("users", data)
+      });
     }
   }
 
