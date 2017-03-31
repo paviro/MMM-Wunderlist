@@ -16,7 +16,9 @@ Module.register("MMM-Wunderlist", {
     lists: ["inbox"],
     interval: 60,
     fade: true,
-    fadePoint: 0.25
+    fadePoint: 0.25,
+    showDeadline: false,
+    showAssignee: false,
   },
 
   // Override socket notification handler.
@@ -28,6 +30,16 @@ Module.register("MMM-Wunderlist", {
     else if (notification === "STARTED") {
       console.log(notification);
       this.sendSocketNotification("addLists", this.config.lists);
+      if (this.config.showAssignee) {
+        this.started = true;
+        this.sendSocketNotification("getUsers");
+      }
+    }
+    else if (notification === "users") {
+      this.users = payload;
+      if (this.tasks && this.tasks.length > 0) {
+        this.updateDom(3000);
+      }
     }
   },
 
@@ -63,13 +75,23 @@ Module.register("MMM-Wunderlist", {
       'String.format.js'
     ];
   },
+  getStyles: function () {
+    return [
+      'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'
+    ];
+  },
 
   html: {
     table: '<thead>{0}</thead><tbody>{1}</tbody>',
-    row: '<tr><td>{0}</td><td>{1}</td></tr>'
+    row: '<tr><td>{0}</td><td>{1}</td><td class="title bright">{2}</td><td>{3}</td></tr>',
+    star: '<i class="fa fa-star" aria-hidden="true"></i>',
+    //assignee: '<div style="border-radius: 50%; width: 36px; height: 36px; padding: 8px; background: #fff; color: #666; text-align: center; font: 32px Arial, sans-serif;">{0}</div>',
   },
 
   getDom: function () {
+    if (this.config.showAssignee && this.started && !this.users) {
+      this.sendSocketNotification("getUsers");
+    }
     var self = this;
     var wrapper = document.createElement("table");
     wrapper.className = "normal small light";
@@ -78,7 +100,12 @@ Module.register("MMM-Wunderlist", {
 
     var rows = []
     todos.forEach(function (todo, i) {
-      rows[i] = self.html.row.format(todo.starred ? '*' : '', todo.title)
+      rows[i] = self.html.row.format(
+        self.config.showDeadline && todo.due_date ? todo.due_date : '',
+        todo.starred ? self.html.star : '',
+        todo.title,
+        self.config.showAssignee && todo.assignee_id && self.users ? self.users[todo.assignee_id] : ''
+      )
 
       // Create fade effect
       if (self.config.fade && self.config.fadePoint < 1) {
@@ -87,30 +114,17 @@ Module.register("MMM-Wunderlist", {
         }
         var startingPoint = todos.length * self.config.fadePoint;
         if (i >= startingPoint) {
-          titleWrapper.style.opacity = 1 - (1 / todos.length - startingPoint * (i - startingPoint));
+          wrapper.style.opacity = 1 - (1 / todos.length - startingPoint * (i - startingPoint));
         }
       }
     });
 
-    /*
-      completed:false
-      created_at:"2017-03-14T07:43:37.172Z"
-      created_by_id:24499672
-      created_by_request_id:"16aab5bba3589ff71989:Tn5nR+oAAAA=:01d89465-74c4-4f22-8291-cdf54f9d472b:24499672:732"
-      id:2609249400
-      list_id:258688629
-      revision:1
-      starred:false
-      title:"5S524X"
-      type:"task"
-    */
-
     wrapper.innerHTML = this.html.table.format(
-      this.html.row.format('', ''),
+      this.html.row.format('', '', '', ''),
       rows.join('')
     )
 
     return wrapper;
-  }
+  },
 
 });

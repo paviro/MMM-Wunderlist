@@ -93,11 +93,28 @@ The following properties can be configured:
 				<br><b>Default value:</b> <code>0.25</code>
 			</td>
 		</tr>
+		<tr>
+			<td><code>showDeadline</code></td>
+			<td>Show deadline of a task<br>
+				<br><b>Possible values:</b> <code>true</code> or <code>false</code>
+				<br><b>Default value:</b> <code>false</code>
+			</td>
+		</tr>
+		<tr>
+			<td><code>showAssignee</code></td>
+			<td>Show due date of a task<br>
+				<br><b>Possible values:</b> <code>true</code> or <code>false</code>
+				<br><b>Default value:</b> <code>false</code>
+			</td>
+		</tr>
 	</tbody>
 </table>
 
 ## Dependencies
 - [wunderlist](https://www.npmjs.com/package/wunderlist) (installed via `npm install`)
+
+## Known issues
+- some of requests for users list returns 404 error
 
 The MIT License (MIT)
 =====================
