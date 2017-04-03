@@ -34,7 +34,7 @@ module.exports = NodeHelper.create({
       .done(function (users) {
         var ret = {};
         users.forEach(function (user) {
-          ret[user.id] = user.name
+          ret[user.id] = user.name[0]
         });
         callback(ret);
       })

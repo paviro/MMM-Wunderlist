@@ -85,7 +85,7 @@ Module.register("MMM-Wunderlist", {
     table: '<thead>{0}</thead><tbody>{1}</tbody>',
     row: '<tr><td>{0}</td><td>{1}</td><td class="title bright">{2}</td><td>{3}</td></tr>',
     star: '<i class="fa fa-star" aria-hidden="true"></i>',
-    //assignee: '<div style="border-radius: 50%; width: 36px; height: 36px; padding: 8px; background: #fff; color: #666; text-align: center; font: 32px Arial, sans-serif;">{0}</div>',
+    assignee: '<div style="display: inline-flex; align-items: center; justify-content: center; background-color: #aaa; color: #666; min-width: 1em; border-radius: 50%; vertical-align: middle; padding: 2px; text-transform: uppercase;">{0}</div>',
   },
 
   getDom: function () {
@@ -104,7 +104,7 @@ Module.register("MMM-Wunderlist", {
         self.config.showDeadline && todo.due_date ? todo.due_date : '',
         todo.starred ? self.html.star : '',
         todo.title,
-        self.config.showAssignee && todo.assignee_id && self.users ? self.users[todo.assignee_id] : ''
+        self.config.showAssignee && todo.assignee_id && self.users ? self.html.assignee.format(self.users[todo.assignee_id]) : ''
       )
 
       // Create fade effect
