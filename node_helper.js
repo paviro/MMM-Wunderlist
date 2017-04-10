@@ -52,7 +52,7 @@ module.exports = NodeHelper.create({
       var self = this;
 
       console.log("Create new todo fetcher for list: " + list + " - Interval: " + reloadInterval);
-      fetcher = new Fetcher(listID, reloadInterval, this.config.accessToken, this.config.clientID, this.config.showAssignee);
+      fetcher = new Fetcher(listID, reloadInterval, this.config.accessToken, this.config.clientID, this.config.language, this.config.deadlineFormat);
 
       fetcher.onReceive(function (fetcher) {
         self.broadcastTodos();

@@ -19,6 +19,7 @@ Module.register("MMM-Wunderlist", {
     fadePoint: 0.25,
     showDeadline: false,
     showAssignee: false,
+    deadlineFormat: 'L',
   },
 
   // Override socket notification handler.
