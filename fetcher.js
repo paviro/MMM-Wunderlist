@@ -8,6 +8,7 @@
  */
 
 var WunderlistSDK = require('wunderlist');
+var moment = require('moment');
 
 /* Fetcher
  * Responsible for requesting an update on the set interval and broadcasting the data.
@@ -16,7 +17,10 @@ var WunderlistSDK = require('wunderlist');
  * attribute reloadInterval number - Reload interval in milliseconds.
  */
 
-var Fetcher = function (listID, reloadInterval, accessToken, clientID) {
+var Fetcher = function (listID, reloadInterval, accessToken, clientID, language, format) {
+
+  moment.locale(language);
+
   var self = this;
   if (reloadInterval < 1000) {
     reloadInterval = 1000;
@@ -45,7 +49,10 @@ var Fetcher = function (listID, reloadInterval, accessToken, clientID) {
 
     WunderlistAPI.http.tasks.forList(listID)
       .done(function (tasks) {
-        items = tasks
+        tasks.forEach(function (task, i) {
+          task.due_date = moment(task.due_date).format(format);
+          items[i] = task;
+        });
         self.broadcastItems();
         scheduleTimer();
       })

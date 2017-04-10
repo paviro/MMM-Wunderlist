@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/paviro/MMM-Wunderlist#readme",
   "dependencies": {
-    "wunderlist": "latest"
+    "wunderlist": "latest",
+    "moment": "latest"
   }
 }

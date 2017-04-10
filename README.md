@@ -101,6 +101,13 @@ The following properties can be configured:
 			</td>
 		</tr>
 		<tr>
+			<td><code>deadlineFormat</code></td>
+			<td>Format for deadlines<br>
+				<br><b>Possible values:</b> formats from <a href="http://momentjs.com/docs/#/displaying/format/">Moment.js</a>
+				<br><b>Default value:</b> <code>L</code>
+			</td>
+		</tr>
+		<tr>
 			<td><code>showAssignee</code></td>
 			<td>Show assigned user of a task<br>
 				<br><b>Possible values:</b> <code>true</code> or <code>false</code>
@@ -111,7 +118,8 @@ The following properties can be configured:
 </table>
 
 ## Dependencies
-- [wunderlist](https://www.npmjs.com/package/wunderlist) (installed via `npm install`)
+- [Wunderlist](https://www.npmjs.com/package/wunderlist) (installed via `npm install`)
+- [Moment](https://www.npmjs.com/package/moment) (installed via `npm install`)
 
 ## Known issues
 - some of requests for users list returns 404 error
