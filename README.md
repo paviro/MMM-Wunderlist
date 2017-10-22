@@ -102,7 +102,7 @@ The following properties can be configured:
 		</tr>
 		<tr>
 			<td><code>showAssignee</code></td>
-			<td>Show due date of a task<br>
+			<td>Show assigned user of a task<br>
 				<br><b>Possible values:</b> <code>true</code> or <code>false</code>
 				<br><b>Default value:</b> <code>false</code>
 			</td>
