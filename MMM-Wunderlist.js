@@ -46,6 +46,12 @@ Module.register("MMM-Wunderlist", {
 
   start: function () {
     this.tasks = [];
+
+    // Use global language per default
+    if (this.config.language == null) {
+      this.config.language = config.language;
+    }
+
     this.sendSocketNotification("CONFIG", this.config);
     this.sendSocketNotification("CONNECTED");
     Log.info("Starting module: " + this.name);
