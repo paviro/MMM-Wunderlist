@@ -94,6 +94,13 @@ The following properties can be configured:
 			</td>
 		</tr>
 		<tr>
+			<td><code>language</code></td>
+			<td>Localisation for this plugin<br>
+				<br><b>Possible values:</b> Moment.js Languages (See <code>node_modules/moment/languages</code> )</code> 
+				<br><b>Default value:</b> Global Language (As in config.js)
+			</td>
+		</tr>
+		<tr>
 			<td><code>showDeadline</code></td>
 			<td>Show deadline of a task<br>
 				<br><b>Possible values:</b> <code>true</code> or <code>false</code>
