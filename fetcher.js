@@ -51,6 +51,7 @@ var Fetcher = function (listID, reloadInterval, accessToken, clientID, language,
       .done(function (tasks) {
         tasks.forEach(function (task, i) {
           task.due_date = moment(task.due_date).format(format);
+          task.created_at = moment(task.created_at).format(format);
           items[i] = task;
         });
         self.broadcastItems();
