@@ -49,11 +49,7 @@ var Fetcher = function (listID, reloadInterval, accessToken, clientID, language,
 
     WunderlistAPI.http.tasks.forList(listID)
       .done(function (tasks) {
-        tasks.forEach(function (task, i) {
-          task.due_date = moment(task.due_date).format(format);
-          task.created_at = moment(task.created_at).format(format);
-          items[i] = task;
-        });
+        items = localizeTasks(tasks);
         self.broadcastItems();
         scheduleTimer();
       })
@@ -62,6 +58,18 @@ var Fetcher = function (listID, reloadInterval, accessToken, clientID, language,
       });
 
   };
+
+  /* localizeTasks(tasks)
+   * Localize the given array of tasks
+   */
+  
+  var localizeTasks = function (tasks) {
+    tasks.forEach(function (task) {
+      task.due_date = moment(task.due_date).format(format);
+      task.created_at = moment(task.created_at).format(format);
+    });
+    return tasks;
+  }
 
   /* scheduleTimer()
    * Schedule the timer for the next update.
