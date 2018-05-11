@@ -14,6 +14,7 @@ var WunderlistSDK = require('wunderlist');
 
 module.exports = NodeHelper.create({
   start: function () {
+    this.instances = {};
     this.config = [];
     this.fetchers = {};
     this.started = false;
@@ -48,7 +49,7 @@ module.exports = NodeHelper.create({
     var fetcher;
 
     if (typeof this.fetchers[listID] === "undefined") {
-
+        
       var self = this;
 
       console.log("Create new todo fetcher for list: " + list + " - Interval: " + reloadInterval);
@@ -91,32 +92,35 @@ module.exports = NodeHelper.create({
   // Subclass socketNotificationReceived received.
   socketNotificationReceived: function (notification, payload) {
     const self = this
-    if (notification === "CONFIG" && this.started == false) {
-      this.config = payload
 
+    if(notification === "CONNECT" && this.started == false){
+      this.config = payload.config;
       this.WunderlistAPI = new WunderlistSDK({
         accessToken: self.config.accessToken,
         clientID: self.config.clientID
       })
 
       this.getLists(function (data) {
-        self.lists = data
-        self.sendSocketNotification("STARTED")
+        self.lists = data;
+        self.sendSocketNotification("RETRIEVED_LISTS");
       });
-      self.started = true
+      self.started = true; 
+
     }
+    if (notification === "CONFIG") {
+      this.instances[payload.id] = payload.config;
+        }
     else if (notification === "addLists") {
       this.lists.forEach(function (currentValue) {
-        if (self.config.lists.indexOf(currentValue.title) >= 0) {
+        if(self.lists.indexOf(currentValue) >= 0)
           self.createFetcher(currentValue.id, currentValue.title, self.config.interval * 1000);
-        }
+        
       })
     }
     else if (notification === "CONNECTED") {
       this.broadcastTodos()
     }
     else if (notification === 'getUsers') {
-      console.log(notification);
       this.getUsers(function (data) {
         self.sendSocketNotification("users", data)
       });

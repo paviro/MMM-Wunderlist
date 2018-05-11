@@ -20,6 +20,13 @@ Module.register("MMM-Wunderlist", {
     showDeadline: false,
     showAssignee: false,
     deadlineFormat: 'L',
+
+  }, 
+
+  notificationReceived: function(notification, payload, sender) {
+    if (notification === "ALL_MODULES_STARTED") {
+      console.log("ALL_MODULES_STATED"+  this.identifier)
+        } 
   },
 
   // Override socket notification handler.
@@ -28,13 +35,8 @@ Module.register("MMM-Wunderlist", {
       this.tasks = payload
       this.updateDom(3000);
     }
-    else if (notification === "STARTED") {
-      console.log(notification);
-      this.sendSocketNotification("addLists", this.config.lists);
-      if (this.config.showAssignee) {
-        this.started = true;
-        this.sendSocketNotification("getUsers");
-      }
+    else if (notification === "RETRIEVED_LISTS") {
+    this.sendSocketNotification("addLists", this.identifier)
     }
     else if (notification === "users") {
       this.users = payload;
@@ -45,21 +47,25 @@ Module.register("MMM-Wunderlist", {
   },
 
   start: function () {
-    this.tasks = [];
-
+    this.tasks = [];   
+    
     // Use global language per default
     if (this.config.language == null) {
       this.config.language = config.language;
     }
 
-    this.sendSocketNotification("CONFIG", this.config);
+    var payload = {
+      id: this.identifier,
+      config: this.config
+    }
+    this.sendSocketNotification("CONNECT", {id: this.identifier , config: this.config});
+    this.sendSocketNotification("CONFIG", {id: this.identifier, config: this.config});
     this.sendSocketNotification("CONNECTED");
-    Log.info("Starting module: " + this.name);
+    Log.info("Starting module: " + this.name + this.identifier);
   },
 
   getTodos: function () {
     var tasksShown = [];
-
     for (var i = 0; i < this.config.lists.length; i++) {
       if (typeof this.tasks[this.config.lists[i]] != "undefined") {
         var list = this.tasks[this.config.lists[i]];
