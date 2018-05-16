@@ -23,7 +23,7 @@ Module.register("MMM-Wunderlist", {
 
 	notificationReceived: function(notification, payload, sender) {
 		if (notification === "ALL_MODULES_STARTED") {
-			console.log("ALL_MODULES_STATED" + this.identifier);
+			this.sendSocketNotification("ALL_MODULES_STARTED");
 		}
 	},
 
@@ -31,9 +31,14 @@ Module.register("MMM-Wunderlist", {
 	socketNotificationReceived: function(notification, payload) {
 		if (notification === "TASKS") {
 			this.tasks = payload;
-			this.updateDom(3000);
+			this.updateDom(2000);
 		} else if (notification === "RETRIEVED_LISTS") {
 			this.sendSocketNotification("addLists", this.identifier);
+		} else if (
+			notification === "SHOW_LISTS" &&
+			payload.callerID == this.identifier
+		) {
+			this.shownLists = payload.shownListID;
 		} else if (notification === "users") {
 			this.users = payload;
 			if (this.tasks && this.tasks.length > 0) {
@@ -44,6 +49,7 @@ Module.register("MMM-Wunderlist", {
 
 	start: function() {
 		this.tasks = [];
+		this.shownLists = [];
 
 		// Use global language per default
 		if (this.config.language == null) {
@@ -54,17 +60,18 @@ Module.register("MMM-Wunderlist", {
 			id: this.identifier,
 			config: this.config
 		};
-		this.sendSocketNotification("CONNECT", {id: this.identifier , config: this.config});
-		this.sendSocketNotification("CONFIG", {id: this.identifier, config: this.config});
-		this.sendSocketNotification("CONNECTED");
+		this.sendSocketNotification("REGISTER_INSTANCE", {
+			id: this.identifier,
+			config: this.config
+		});
 		Log.info("Starting module: " + this.name + this.identifier);
 	},
 
 	getTodos: function() {
 		var tasksShown = [];
-		for (var i = 0; i < this.config.lists.length; i++) {
-			if (typeof this.tasks[this.config.lists[i]] != "undefined") {
-				var list = this.tasks[this.config.lists[i]];
+		for (var i = 0; i < this.shownLists.length; i++) {
+			if (typeof this.tasks[this.shownLists[i]] != "undefined") {
+				var list = this.tasks[this.shownLists[i]];
 
 				for (var todo in list) {
 					if (this.config.order == "reversed") {
@@ -87,9 +94,11 @@ Module.register("MMM-Wunderlist", {
 
 	html: {
 		table: "<thead>{0}</thead><tbody>{1}</tbody>",
-		row:	"<tr><td>{0}</td><td>{1}</td><td class=\"title bright\">{2}</td><td>{3}</td></tr>",
-		star: "<i class=\"fa fa-star\" aria-hidden=\"true\"></i>",
-		assignee: "<div style=\"display: inline-flex; align-items: center; justify-content: center; background-color: #aaa; color: #666; min-width: 1em; border-radius: 50%; vertical-align: middle; padding: 2px; text-transform: uppercase;\">{0}</div>"
+		row:
+			'<tr><td>{0}</td><td>{1}</td><td class="title bright">{2}</td><td>{3}</td></tr>',
+		star: '<i class="fa fa-star" aria-hidden="true"></i>',
+		assignee:
+			'<div style="display: inline-flex; align-items: center; justify-content: center; background-color: #aaa; color: #666; min-width: 1em; border-radius: 50%; vertical-align: middle; padding: 2px; text-transform: uppercase;">{0}</div>'
 	},
 
 	getDom: function() {

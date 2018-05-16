@@ -14,17 +14,33 @@ var WunderlistSDK = require("wunderlist");
 
 module.exports = NodeHelper.create({
 	start: function() {
-		this.instances = {};
+		this.instances = [];
+		this.startedInstances = 0;
+		this.allModulesLoaded = false;
+		this.lists = [];
 		this.config = [];
 		this.fetchers = {};
 		this.started = false;
+		this.accounts = {};
 	},
+	getLists: function(options, callback) {
+		var self = this;
+		var wunderlist = new WunderlistSDK({
+			accessToken: options.accessToken,
+			clientID: options.clientID
+		});
 
-	getLists: function(callback) {
-		this.WunderlistAPI.http.lists
+		wunderlist.http.lists
 			.all()
 			.done(function(lists) {
-				callback(lists);
+				var result = lists.map(function(list) {
+					var o = Object.assign({}, list);
+					list.options = options;
+					return list;
+				});
+				self.addLists(result);
+				self.notifyCallingInstance(result);
+				callback(result);
 			})
 			.fail(function(resp, code) {
 				console.error("there was a Wunderlist problem", code);
@@ -45,26 +61,52 @@ module.exports = NodeHelper.create({
 				console.error("there was a Wunderlist problem", code);
 			});
 	},
+	notifyCallingInstance: function(lists){
+		if (lists[0] != undefined) {
+			var callerID = lists[0].options.id
+			var shownLists = []
+			lists.forEach(function(newList){
+				if (newList.options.lists.includes(newList.title)){
+					shownLists.push(newList.id)
+				}
+			})
+			this.sendSocketNotification("SHOW_LISTS", {callerID, shownLists});
+		}
+	},
 
-	createFetcher: function(listID, list, reloadInterval) {
+	addLists: function(newLists) {
+		var self = this;
+		newLists.forEach(function(newList) {
+			var exists = self.lists.some(function(element) {
+				return element.id == newList.id;
+			});
+			if (!exists) {
+				if (newList.options.lists.includes(newList.title)) {
+					self.lists.push(newList);
+				}
+			}
+		});
+	},
+
+	createFetcher: function(list) {
 		var fetcher;
 
-		if (typeof this.fetchers[listID] === "undefined") {
+		if (typeof this.fetchers[list.id] === "undefined") {
 			var self = this;
 
 			console.log(
 				"Create new todo fetcher for list: " +
-					list +
+					list.title +
 					" - Interval: " +
-					reloadInterval
+					list.options.interval
 			);
 			fetcher = new Fetcher(
-				listID,
-				reloadInterval,
-				this.config.accessToken,
-				this.config.clientID,
-				this.config.language,
-				this.config.deadlineFormat
+				list.id,
+				list.options.interval,
+				list.options.accessToken,
+				list.options.clientID,
+				list.options.language,
+				list.options.deadlineFormat
 			);
 
 			fetcher.onReceive(function(fetcher) {
@@ -78,14 +120,14 @@ module.exports = NodeHelper.create({
 				});
 			});
 
-			this.fetchers[listID] = {
-				name: list,
+			this.fetchers[list.id] = {
+				name: list.id,
 				instance: fetcher
 			};
 		} else {
 			console.log("Use exsisting todo fetcher for list: " + list);
-			fetcher = this.fetchers[listID].instance;
-			fetcher.setReloadInterval(reloadInterval);
+			fetcher = this.fetchers[list.id].instance;
+			fetcher.setReloadInterval(list.options.interval);
 			fetcher.broadcastItems();
 		}
 
@@ -100,9 +142,32 @@ module.exports = NodeHelper.create({
 		this.sendSocketNotification("TASKS", todos);
 	},
 
+	determineFullyStarted() {
+		const self = this;
+		if (
+			this.allModulesLoaded &&
+			this.startedInstances == this.instances.length
+		) { 	this.lists.forEach(function(currentValue) {
+				self.createFetcher(currentValue);
+			});
+		}
+	},
+
 	// Subclass socketNotificationReceived received.
 	socketNotificationReceived: function(notification, payload) {
 		const self = this;
+
+		if (notification === "REGISTER_INSTANCE") {
+			var instance = {};
+			instance = payload.config;
+			instance.id = payload.id;
+			this.getLists(payload.config, function(data) {
+				self.startedInstances++;
+				self.determineFullyStarted();
+			});
+
+			this.instances.push(instance);
+		}
 
 		if (notification === "CONNECT" && this.started == false) {
 			this.config = payload.config;
@@ -131,6 +196,8 @@ module.exports = NodeHelper.create({
 			});
 		} else if (notification === "CONNECTED") {
 			this.broadcastTodos();
+		} else if (notification === "ALL_MODULES_STARTED") {
+			this.allModulesLoaded = true;
 		} else if (notification === "getUsers") {
 			this.getUsers(function(data) {
 				self.sendSocketNotification("users", data);
