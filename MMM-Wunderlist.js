@@ -38,8 +38,8 @@ Module.register("MMM-Wunderlist", {
 			notification === "RETRIEVED_LIST_IDS" &&
 			payload.id == this.identifier
 		) {
-			console.log("RETRIEVED_LIST_IDS", payload)
 			this.listIDs = payload.displayedListIDs;
+			this.started = true
 		} else if (notification === "users") {
 			this.users = payload;
 			if (this.tasks && this.tasks.length > 0) {
@@ -69,7 +69,6 @@ Module.register("MMM-Wunderlist", {
 	},
 
 	getTodos: function() {
-		console.log("Getting Todos")
 		var tasksShown = [];
 		for (var i = 0; i < this.listIDs.length; i++) {
 			if (typeof this.lists[this.listIDs[i]] != "undefined") {
@@ -103,9 +102,6 @@ Module.register("MMM-Wunderlist", {
 	},
 
 	getDom: function() {
-		if (this.config.showAssignee && this.started && !this.users) {
-			this.sendSocketNotification("getUsers");
-		}
 		var self = this;
 		var wrapper = document.createElement("table");
 		wrapper.className = "normal small light";
@@ -122,7 +118,6 @@ Module.register("MMM-Wunderlist", {
 					? self.html.assignee.format(self.users[todo.assignee_id])
 					: ""
 			);
-
 			// Create fade effect
 			if (self.config.fade && self.config.fadePoint < 1) {
 				if (self.config.fadePoint < 0) {

@@ -18,8 +18,9 @@ module.exports = NodeHelper.create({
 		this.startedInstances = 0;
 		this.allModulesLoaded = false;
 		this.lists = [];
+		this.users = {};
 		this.fetchers = {};
-		this.configs = [];
+		this.configs = {};
 	},
 	getLists: function(options, callback) {
 		var self = this;
@@ -38,19 +39,49 @@ module.exports = NodeHelper.create({
 			});
 	},
 
-	getUsers: function(callback) {
-		this.WunderlistAPI.http.users
-			.all()
-			.done(function(users) {
-				var ret = {};
-				users.forEach(function(user) {
-					ret[user.id] = user.name[0];
+	determineAccounts: function(configs) {
+		var accounts = [];
+		Object.keys(configs).forEach(function(listID) {
+			if (
+				!accounts.some(account => account.clientID === configs[listID].clientID)
+			) {
+				accounts.push({
+					clientID: configs[listID].clientID,
+					accessToken: configs[listID].accessToken
 				});
-				callback(ret);
-			})
-			.fail(function(resp, code) {
-				console.error("there was a Wunderlist problem", code);
+			}
+		});
+		return accounts;
+	},
+	addUsers: function(users) {
+		var self = this;
+		users.forEach(function(user) {
+			self.users[user.id] = user.name[0];
+		});
+	},
+
+	getUsers: function(accounts) {
+		var self = this;
+		var retrievedAccounts = 0;
+		accounts.forEach(function(account) {
+			var wunderlist = new WunderlistSDK({
+				accessToken: account.accessToken,
+				clientID: account.clientID
 			});
+
+			wunderlist.http.users
+				.all()
+				.done(function(users) {
+					retrievedAccounts++;
+					self.addUsers(users);
+					if (retrievedAccounts == accounts.length) {
+						self.sendSocketNotification("users", self.users);
+					}
+				})
+				.fail(function(resp, code) {
+					console.error("there was a Wunderlist problem", code);
+				});
+		});
 	},
 
 	getDisplayedListIDs: function(lists, config) {
@@ -83,7 +114,7 @@ module.exports = NodeHelper.create({
 
 			console.log(
 				"Create new todo fetcher for list: " +
-					list.title +
+					list.title + " - Account: " + config.clientID +
 					" - Interval: " +
 					config.interval * 1000
 			);
@@ -154,6 +185,7 @@ module.exports = NodeHelper.create({
 			});
 			self.startedInstances++;
 			if (self.allInstancesStarted()) {
+				self.getUsers(self.determineAccounts(self.configs));
 				self.createFetchers();
 			}
 		});
@@ -166,10 +198,6 @@ module.exports = NodeHelper.create({
 			this.registerInstance(payload.id, payload.config);
 		} else if (notification === "ALL_MODULES_STARTED") {
 			this.allModulesLoaded = true;
-		} else if (notification === "getUsers") {
-			this.getUsers(function(data) {
-				self.sendSocketNotification("users", data);
-			});
 		}
 	}
 });
