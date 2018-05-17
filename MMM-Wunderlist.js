@@ -31,9 +31,7 @@ Module.register("MMM-Wunderlist", {
 	socketNotificationReceived: function(notification, payload) {
 		if (notification === "RETRIEVED_TODOS") {
 			this.lists = payload;
-			this.updateDom(2000);
-		} else if (notification === "RETRIEVED_LISTS") {
-			this.sendSocketNotification("addLists", this.identifier);
+			this.updateDom(3000);
 		} else if (
 			notification === "RETRIEVED_LIST_IDS" &&
 			payload.id == this.identifier
