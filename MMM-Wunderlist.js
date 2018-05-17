@@ -29,16 +29,17 @@ Module.register("MMM-Wunderlist", {
 
 	// Override socket notification handler.
 	socketNotificationReceived: function(notification, payload) {
-		if (notification === "TASKS") {
-			this.tasks = payload;
+		if (notification === "RETRIEVED_TODOS") {
+			this.lists = payload;
 			this.updateDom(2000);
 		} else if (notification === "RETRIEVED_LISTS") {
 			this.sendSocketNotification("addLists", this.identifier);
 		} else if (
-			notification === "SHOW_LISTS" &&
-			payload.callerID == this.identifier
+			notification === "RETRIEVED_LIST_IDS" &&
+			payload.id == this.identifier
 		) {
-			this.shownLists = payload.shownListID;
+			console.log("RETRIEVED_LIST_IDS", payload)
+			this.listIDs = payload.displayedListIDs;
 		} else if (notification === "users") {
 			this.users = payload;
 			if (this.tasks && this.tasks.length > 0) {
@@ -48,8 +49,8 @@ Module.register("MMM-Wunderlist", {
 	},
 
 	start: function() {
-		this.tasks = [];
-		this.shownLists = [];
+		this.lists = [];
+		this.listIDs = [];
 
 		// Use global language per default
 		if (this.config.language == null) {
@@ -68,11 +69,11 @@ Module.register("MMM-Wunderlist", {
 	},
 
 	getTodos: function() {
+		console.log("Getting Todos")
 		var tasksShown = [];
-		for (var i = 0; i < this.shownLists.length; i++) {
-			if (typeof this.tasks[this.shownLists[i]] != "undefined") {
-				var list = this.tasks[this.shownLists[i]];
-
+		for (var i = 0; i < this.listIDs.length; i++) {
+			if (typeof this.lists[this.listIDs[i]] != "undefined") {
+				var list = this.lists[this.listIDs[i]];
 				for (var todo in list) {
 					if (this.config.order == "reversed") {
 						tasksShown.push(list[todo]);

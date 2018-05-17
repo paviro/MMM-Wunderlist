@@ -7,7 +7,7 @@
  * MIT Licensed.
  */
 
-const NodeHelper = require("node_helper");
+var NodeHelper = require("node_helper");
 const Fetcher = require("./fetcher.js");
 
 var WunderlistSDK = require("wunderlist");
@@ -18,10 +18,8 @@ module.exports = NodeHelper.create({
 		this.startedInstances = 0;
 		this.allModulesLoaded = false;
 		this.lists = [];
-		this.config = [];
 		this.fetchers = {};
-		this.started = false;
-		this.accounts = {};
+		this.configs = [];
 	},
 	getLists: function(options, callback) {
 		var self = this;
@@ -33,14 +31,7 @@ module.exports = NodeHelper.create({
 		wunderlist.http.lists
 			.all()
 			.done(function(lists) {
-				var result = lists.map(function(list) {
-					var o = Object.assign({}, list);
-					list.options = options;
-					return list;
-				});
-				self.addLists(result);
-				self.notifyCallingInstance(result);
-				callback(result);
+				callback(lists);
 			})
 			.fail(function(resp, code) {
 				console.error("there was a Wunderlist problem", code);
@@ -61,36 +52,32 @@ module.exports = NodeHelper.create({
 				console.error("there was a Wunderlist problem", code);
 			});
 	},
-	notifyCallingInstance: function(lists){
-		if (lists[0] != undefined) {
-			var callerID = lists[0].options.id
-			var shownLists = []
-			lists.forEach(function(newList){
-				if (newList.options.lists.includes(newList.title)){
-					shownLists.push(newList.id)
-				}
-			})
-			this.sendSocketNotification("SHOW_LISTS", {callerID, shownLists});
-		}
+
+	getDisplayedListIDs: function(lists, config) {
+		var listIDs = [];
+		lists.forEach(function(list) {
+			if (config.lists.includes(list.title)) {
+				listIDs.push(list.id);
+			}
+		});
+		return listIDs;
 	},
 
-	addLists: function(newLists) {
+	addLists: function(lists, config) {
 		var self = this;
-		newLists.forEach(function(newList) {
+		lists.forEach(function(list) {
 			var exists = self.lists.some(function(element) {
-				return element.id == newList.id;
+				return element.id == list.id;
 			});
-			if (!exists) {
-				if (newList.options.lists.includes(newList.title)) {
-					self.lists.push(newList);
-				}
+			if (!exists && config.lists.includes(list.title)) {
+				self.lists.push(list);
+				self.configs[list.id] = config;
 			}
 		});
 	},
 
-	createFetcher: function(list) {
+	createFetcher: function(list, config) {
 		var fetcher;
-
 		if (typeof this.fetchers[list.id] === "undefined") {
 			var self = this;
 
@@ -98,15 +85,15 @@ module.exports = NodeHelper.create({
 				"Create new todo fetcher for list: " +
 					list.title +
 					" - Interval: " +
-					list.options.interval
+					config.interval * 1000
 			);
 			fetcher = new Fetcher(
 				list.id,
-				list.options.interval,
-				list.options.accessToken,
-				list.options.clientID,
-				list.options.language,
-				list.options.deadlineFormat
+				config.interval * 1000,
+				config.accessToken,
+				config.clientID,
+				config.language,
+				config.deadlineFormat
 			);
 
 			fetcher.onReceive(function(fetcher) {
@@ -121,13 +108,13 @@ module.exports = NodeHelper.create({
 			});
 
 			this.fetchers[list.id] = {
-				name: list.id,
+				listID: list.id,
 				instance: fetcher
 			};
 		} else {
 			console.log("Use exsisting todo fetcher for list: " + list);
 			fetcher = this.fetchers[list.id].instance;
-			fetcher.setReloadInterval(list.options.interval);
+			fetcher.setReloadInterval(config.interval);
 			fetcher.broadcastItems();
 		}
 
@@ -137,65 +124,46 @@ module.exports = NodeHelper.create({
 	broadcastTodos: function() {
 		var todos = {};
 		for (var f in this.fetchers) {
-			todos[this.fetchers[f].name] = this.fetchers[f].instance.items();
+			todos[this.fetchers[f].listID] = this.fetchers[f].instance.items();
 		}
-		this.sendSocketNotification("TASKS", todos);
+		this.sendSocketNotification("RETRIEVED_TODOS", todos);
 	},
 
-	determineFullyStarted() {
+	allInstancesStarted: function() {
+		return (
+			this.allModulesLoaded && this.startedInstances == this.instances.length
+		);
+	},
+
+	createFetchers: function() {
 		const self = this;
-		if (
-			this.allModulesLoaded &&
-			this.startedInstances == this.instances.length
-		) { 	this.lists.forEach(function(currentValue) {
-				self.createFetcher(currentValue);
+		this.lists.forEach(function(list) {
+			self.createFetcher(list, self.configs[list.id]);
+		});
+	},
+
+	registerInstance: function(id, config) {
+		const self = this;
+		this.instances.push(id);
+		this.getLists(config, function(lists) {
+			self.addLists(lists, config);
+			var displayedListIDs = self.getDisplayedListIDs(lists, config);
+			self.sendSocketNotification("RETRIEVED_LIST_IDS", {
+				id,
+				displayedListIDs
 			});
-		}
+			self.startedInstances++;
+			if (self.allInstancesStarted()) {
+				self.createFetchers();
+			}
+		});
 	},
 
 	// Subclass socketNotificationReceived received.
 	socketNotificationReceived: function(notification, payload) {
 		const self = this;
-
 		if (notification === "REGISTER_INSTANCE") {
-			var instance = {};
-			instance = payload.config;
-			instance.id = payload.id;
-			this.getLists(payload.config, function(data) {
-				self.startedInstances++;
-				self.determineFullyStarted();
-			});
-
-			this.instances.push(instance);
-		}
-
-		if (notification === "CONNECT" && this.started == false) {
-			this.config = payload.config;
-			this.WunderlistAPI = new WunderlistSDK({
-				accessToken: self.config.accessToken,
-				clientID: self.config.clientID
-			});
-
-			this.getLists(function(data) {
-				self.lists = data;
-				self.sendSocketNotification("RETRIEVED_LISTS");
-			});
-			self.started = true;
-		}
-		if (notification === "CONFIG") {
-			this.instances[payload.id] = payload.config;
-		} else if (notification === "addLists") {
-			this.lists.forEach(function(currentValue) {
-				if (self.lists.indexOf(currentValue) >= 0) {
-					self.createFetcher(
-						currentValue.id,
-						currentValue.title,
-						self.config.interval * 1000
-					);
-				}
-			});
-		} else if (notification === "CONNECTED") {
-			this.broadcastTodos();
+			this.registerInstance(payload.id, payload.config);
 		} else if (notification === "ALL_MODULES_STARTED") {
 			this.allModulesLoaded = true;
 		} else if (notification === "getUsers") {
