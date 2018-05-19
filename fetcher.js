@@ -34,6 +34,8 @@ var Fetcher = function(
 
 	var reloadTimer = null;
 	var items = [];
+	var revision = 0;
+	var wunderlist = new Wunderlist(clientID, accessToken);
 
 	var fetchFailedCallback = function() {};
 	var itemsReceivedCallback = function() {};
@@ -44,29 +46,59 @@ var Fetcher = function(
    * Request the new items.
    */
 
-	var fetchTodos = function() {
+	var fetchTodos = function(wunderlist) {
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
-		var wunderlist = new Wunderlist(clientID, accessToken);
-		wunderlist
-			.retrieveTodos(listID)
-			.then(function(tasks) {
-				items = localizeTasks(tasks);
-				self.broadcastItems()
+
+		fetchList(wunderlist, listID).then(function(list) {
+			if (list.revision > revision || revision == 0) {
+				wunderlist
+					.retrieveTodos(listID)
+					.then(function(tasks) {
+						items = localizeTasks(tasks);
+						self.broadcastItems();
+						scheduleTimer();
+					})
+					.catch(function(err) {
+						console.error(
+							"Failed to retrieve list: " +
+								listID +
+								" - accessToken: " +
+								accessToken +
+								" - clientID: " +
+								clientID +
+								"Reason: " +
+								err.stack
+						);
+					});
+			} else {
 				scheduleTimer();
-			})
-			.catch(function(err) {
-				console.error(
-					"Failed to retrieve list: " +
-						listID +
-						" - accessToken: " +
-						accessToken +
-						" - clientID: " +
-						clientID +
-						"Reason: " +
-						err.stack
-				);
-			});
+			}
+
+			revision = list.revision;
+		});
+	};
+
+	var fetchList = function(wunderlist, listID) {
+		return new Promise(function(resolve, reject) {
+			wunderlist
+				.retrieveList(listID)
+				.then(function(list) {
+					resolve(list);
+				})
+				.catch(function(err) {
+					console.error(
+						"Failed to retrieve status for list: " +
+							listID +
+							" - accessToken: " +
+							accessToken +
+							" - clientID: " +
+							clientID +
+							"Reason: " +
+							err.stack
+					);
+				});
+		});
 	};
 
 	/* localizeTasks(tasks)
@@ -88,7 +120,7 @@ var Fetcher = function(
 	var scheduleTimer = function() {
 		clearTimeout(reloadTimer);
 		reloadTimer = setTimeout(function() {
-			fetchTodos();
+			fetchTodos(wunderlist);
 		}, reloadInterval);
 	};
 
@@ -109,7 +141,7 @@ var Fetcher = function(
    * Initiate fetchTodos();
    */
 	this.startFetch = function() {
-		fetchTodos();
+		fetchTodos(wunderlist);
 	};
 
 	/* broadcastItems()
