@@ -7,7 +7,7 @@
  * MIT Licensed.
  */
 
-var WunderlistSDK = require("wunderlist");
+var Wunderlist = require("./wunderlist-api");
 var moment = require("moment");
 
 /* Fetcher
@@ -47,21 +47,25 @@ var Fetcher = function(
 	var fetchTodos = function() {
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
-
-		var WunderlistAPI = new WunderlistSDK({
-			accessToken: accessToken,
-			clientID: clientID
-		});
-
-		WunderlistAPI.http.tasks
-			.forList(listID)
-			.done(function(tasks) {
+		var wunderlist = new Wunderlist(clientID, accessToken);
+		wunderlist
+			.retrieveTodos(listID)
+			.then(function(tasks) {
 				items = localizeTasks(tasks);
-				self.broadcastItems();
+				self.broadcastItems()
 				scheduleTimer();
 			})
-			.fail(function(resp, code) {
-				console.error("there was a Wunderlist problem", resp, code);
+			.catch(function(err) {
+				console.error(
+					"Failed to retrieve list: " +
+						listID +
+						" - accessToken: " +
+						accessToken +
+						" - clientID: " +
+						clientID +
+						"Reason: " +
+						err.stack
+				);
 			});
 	};
 

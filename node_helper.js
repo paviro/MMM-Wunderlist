@@ -7,10 +7,9 @@
  * MIT Licensed.
  */
 
+var Wunderlist = require("./wunderlist-api");
 var NodeHelper = require("node_helper");
 const Fetcher = require("./fetcher.js");
-
-var WunderlistSDK = require("wunderlist");
 
 module.exports = NodeHelper.create({
 	start: function() {
@@ -24,18 +23,21 @@ module.exports = NodeHelper.create({
 	},
 	getLists: function(options, callback) {
 		var self = this;
-		var wunderlist = new WunderlistSDK({
-			accessToken: options.accessToken,
-			clientID: options.clientID
-		});
-
-		wunderlist.http.lists
-			.all()
-			.done(function(lists) {
+		var wunderlist = new Wunderlist(options.clientID, options.accessToken);
+		wunderlist
+			.retrieveLists()
+			.then(function(lists) {
 				callback(lists);
 			})
-			.fail(function(resp, code) {
-				console.error("there was a Wunderlist problem", code);
+			.catch(function(err) {
+				console.error(
+					"Failed to retrieve lists for clientID:" +
+						options.clientID +
+						" - accessToken:  " +
+						options.accessToken +
+						"Reason: " +
+						err.stack
+				);
 			});
 	},
 
@@ -64,22 +66,25 @@ module.exports = NodeHelper.create({
 		var self = this;
 		var retrievedAccounts = 0;
 		accounts.forEach(function(account) {
-			var wunderlist = new WunderlistSDK({
-				accessToken: account.accessToken,
-				clientID: account.clientID
-			});
-
-			wunderlist.http.users
-				.all()
-				.done(function(users) {
+			var wunderlist = new Wunderlist(account.clientID, account.accessToken);
+			wunderlist
+				.retrieveUsers()
+				.then(function(users) {
 					retrievedAccounts++;
 					self.addUsers(users);
 					if (retrievedAccounts == accounts.length) {
 						self.sendSocketNotification("users", self.users);
 					}
 				})
-				.fail(function(resp, code) {
-					console.error("there was a Wunderlist problem", code);
+				.catch(function(err) {
+					console.error(
+						"Failed to retrieve users for clientID:" +
+							account.clientID +
+							" - accessToken:  " +
+							account.accessToken +
+							"Reason: " +
+							err.stack
+					);
 				});
 		});
 	},
@@ -96,6 +101,7 @@ module.exports = NodeHelper.create({
 
 	addLists: function(lists, config) {
 		var self = this;
+		console.log("LISTS", lists)
 		lists.forEach(function(list) {
 			var exists = self.lists.some(function(element) {
 				return element.id == list.id;
@@ -114,7 +120,9 @@ module.exports = NodeHelper.create({
 
 			console.log(
 				"Create new todo fetcher for list: " +
-					list.title + " - Account: " + config.clientID +
+					list.title +
+					" - Account: " +
+					config.clientID +
 					" - Interval: " +
 					config.interval * 1000
 			);
@@ -177,6 +185,7 @@ module.exports = NodeHelper.create({
 		const self = this;
 		this.instances.push(id);
 		this.getLists(config, function(lists) {
+			console.log("INSIDE", lists)
 			self.addLists(lists, config);
 			var displayedListIDs = self.getDisplayedListIDs(lists, config);
 			self.sendSocketNotification("RETRIEVED_LIST_IDS", {
