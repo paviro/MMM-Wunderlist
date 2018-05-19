@@ -23,7 +23,7 @@ var Wunderlist = function (clientID, accessToken) {
 					resolve(JSON.parse(resp));
 				})
 				.catch(function (err) {
-					reject(JSON.parse(err));
+					reject(err);
 				});
 		});
 	};
@@ -38,7 +38,7 @@ var Wunderlist = function (clientID, accessToken) {
 					resolve(JSON.parse(resp));
 				})
 				.catch(function (err) {
-					reject(JSON.parse(err));
+					reject(err);
 				});
 		});
 	};
@@ -53,7 +53,7 @@ var Wunderlist = function (clientID, accessToken) {
 					resolve(JSON.parse(resp));
 				})
 				.catch(function (err) {
-					reject(JSON.parse(err));
+					reject(err);
 				});
 		});
 	};

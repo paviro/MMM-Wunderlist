@@ -185,7 +185,6 @@ module.exports = NodeHelper.create({
 		const self = this;
 		this.instances.push(id);
 		this.getLists(config, function(lists) {
-			console.log("INSIDE", lists)
 			self.addLists(lists, config);
 			var displayedListIDs = self.getDisplayedListIDs(lists, config);
 			self.sendSocketNotification("RETRIEVED_LIST_IDS", {
