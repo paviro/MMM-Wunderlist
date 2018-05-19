@@ -43,6 +43,21 @@ var Wunderlist = function (clientID, accessToken) {
 		});
 	};
 
+	this.retrieveList = function (listID) {
+		return new Promise(function (resolve, reject) {
+			var options = defaults;
+			options.uri = endpoint + "lists/" + listID;
+
+			rp(options)
+				.then(function (resp) {
+					resolve(JSON.parse(resp));
+				})
+				.catch(function (err) {
+					reject(err);
+				});
+		});
+	};
+
 	this.retrieveUsers = function () {
 		return new Promise(function (resolve, reject) {
 			var options = defaults;
