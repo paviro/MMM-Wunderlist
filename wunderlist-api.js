@@ -1,7 +1,7 @@
 var rp = require("request-promise");
 const endpoint = "https://a.wunderlist.com/api/v1/";
 
-var Wunderlist = function(clientID, accessToken) {
+var Wunderlist = function (clientID, accessToken) {
 	const defaults = {
 		headers: {
 			"X-Client-ID": clientID,
@@ -10,8 +10,8 @@ var Wunderlist = function(clientID, accessToken) {
 		}
 	};
 
-	this.retrieveTodos = function(listID) {
-		return new Promise(function(resolve, reject) {
+	this.retrieveTodos = function (listID) {
+		return new Promise(function (resolve, reject) {
 			var options = defaults;
 			options.uri = endpoint + "tasks";
 			options.qs = {
@@ -19,41 +19,41 @@ var Wunderlist = function(clientID, accessToken) {
 			};
 
 			rp(options)
-				.then(function(resp) {
-					resolve(resp);
+				.then(function (resp) {
+					resolve(JSON.parse(resp));
 				})
-				.catch(function(err) {
-					reject(err);
+				.catch(function (err) {
+					reject(JSON.parse(err));
 				});
 		});
 	};
 
-	this.retrieveLists = function(){
-		return new Promise(function(resolve, reject) {
+	this.retrieveLists = function () {
+		return new Promise(function (resolve, reject) {
 			var options = defaults;
 			options.uri = endpoint + "lists";
 
 			rp(options)
-				.then(function(resp) {
-					resolve(resp);
+				.then(function (resp) {
+					resolve(JSON.parse(resp));
 				})
-				.catch(function(err) {
-					reject(err);
+				.catch(function (err) {
+					reject(JSON.parse(err));
 				});
 		});
 	};
 
-	this.retrieveUsers = function(){
-		return new Promise(function(resolve, reject) {
+	this.retrieveUsers = function () {
+		return new Promise(function (resolve, reject) {
 			var options = defaults;
 			options.uri = endpoint + "users";
 
 			rp(options)
-				.then(function(resp) {
-					resolve(resp);
+				.then(function (resp) {
+					resolve(JSON.parse(resp));
 				})
-				.catch(function(err) {
-					reject(err);
+				.catch(function (err) {
+					reject(JSON.parse(err));
 				});
 		});
 	};
