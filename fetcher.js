@@ -168,9 +168,7 @@ var Fetcher = function(
    * Broadcast the exsisting items.
    */
 	this.broadcastItems = function() {
-		if (items.length <= 0) {
-			return;
-		}
+
 		itemsReceivedCallback(self);
 	};
 
