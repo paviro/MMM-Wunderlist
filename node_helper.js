@@ -31,7 +31,7 @@ module.exports = NodeHelper.create({
 			})
 			.catch(function(err) {
 				console.error(
-					"Failed to retrieve lists for clientID:" +
+					"MMM-Wunderlist: Failed to retrieve lists for clientID:" +
 						options.clientID +
 						" - accessToken:  " +
 						options.accessToken +
@@ -78,7 +78,7 @@ module.exports = NodeHelper.create({
 				})
 				.catch(function(err) {
 					console.error(
-						"Failed to retrieve users for clientID:" +
+						"MMM-Wunderlist: Failed to retrieve users for clientID:" +
 							account.clientID +
 							" - accessToken:  " +
 							account.accessToken +
@@ -101,7 +101,6 @@ module.exports = NodeHelper.create({
 
 	addLists: function(lists, config) {
 		var self = this;
-		console.log("LISTS", lists)
 		lists.forEach(function(list) {
 			var exists = self.lists.some(function(element) {
 				return element.id == list.id;
@@ -119,7 +118,7 @@ module.exports = NodeHelper.create({
 			var self = this;
 
 			console.log(
-				"Create new todo fetcher for list: " +
+				"MMM-Wunderlist: Create new todo fetcher for list: " +
 					list.title +
 					" - Account: " +
 					config.clientID +
@@ -151,7 +150,7 @@ module.exports = NodeHelper.create({
 				instance: fetcher
 			};
 		} else {
-			console.log("Use exsisting todo fetcher for list: " + list);
+			console.log("MMM-Wunderlist: Use exsisting todo fetcher for list: " + list.id);
 			fetcher = this.fetchers[list.id].instance;
 			fetcher.setReloadInterval(config.interval);
 			fetcher.broadcastItems();
