@@ -7,7 +7,7 @@
  * MIT Licensed.
  */
 
-var WunderlistSDK = require("wunderlist");
+var Wunderlist = require("./wunderlist-api");
 var moment = require("moment");
 
 /* Fetcher
@@ -34,6 +34,8 @@ var Fetcher = function(
 
 	var reloadTimer = null;
 	var items = [];
+	var revision = 0;
+	var wunderlist = new Wunderlist(clientID, accessToken);
 
 	var fetchFailedCallback = function() {};
 	var itemsReceivedCallback = function() {};
@@ -44,25 +46,79 @@ var Fetcher = function(
    * Request the new items.
    */
 
-	var fetchTodos = function() {
+	var fetchTodos = function(wunderlist) {
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
 
-		var WunderlistAPI = new WunderlistSDK({
-			accessToken: accessToken,
-			clientID: clientID
-		});
+		fetchList(wunderlist, listID)
+			.then(function(list) {
+				if (list.revision > revision || revision == 0) {
+					wunderlist
+						.retrieveTodos(listID)
+						.then(function(tasks) {
+							items = localizeTasks(tasks);
+							self.broadcastItems();
+							scheduleTimer();
+						})
+						.catch(function(err) {
+							// Wunderlist is known to occasionally have interal server-errors
+							if (isWunderlistAPIError(err) && revision != 0) {
+								console.log("Wunderlist returned an internal server-error. Recovering.")
+								scheduleTimer();
+							} else {
+								console.error(
+									"Failed to retrieve list: " +
+										listID +
+										" - accessToken: " +
+										accessToken +
+										" - clientID: " +
+										clientID +
+										"Reason: " +
+										err.stack
+								);
+							}
+						});
+				} else {
+					scheduleTimer();
+				}
 
-		WunderlistAPI.http.tasks
-			.forList(listID)
-			.done(function(tasks) {
-				items = localizeTasks(tasks);
-				self.broadcastItems();
-				scheduleTimer();
+				revision = list.revision;
 			})
-			.fail(function(resp, code) {
-				console.error("there was a Wunderlist problem", resp, code);
+			.catch(function(err) {
+				// Wunderlist is known to occasionally have interal server-errors
+				if (isWunderlistAPIError(err) && revision != 0) {
+					console.log("Wunderlist returned an internal server-error. Recovering.")
+					scheduleTimer();
+				} else {
+					console.error(
+						"Failed to retrieve status for list: " +
+							listID +
+							" - accessToken: " +
+							accessToken +
+							" - clientID: " +
+							clientID +
+							"Reason: " +
+							err.stack
+					);
+				}
 			});
+	};
+
+	var isWunderlistAPIError = function(err) {
+		return err.statusCode == 500;
+	};
+
+	var fetchList = function(wunderlist, listID) {
+		return new Promise(function(resolve, reject) {
+			wunderlist
+				.retrieveList(listID)
+				.then(function(list) {
+					resolve(list);
+				})
+				.catch(function(err) {
+					reject(err);
+				});
+		});
 	};
 
 	/* localizeTasks(tasks)
@@ -84,7 +140,7 @@ var Fetcher = function(
 	var scheduleTimer = function() {
 		clearTimeout(reloadTimer);
 		reloadTimer = setTimeout(function() {
-			fetchTodos();
+			fetchTodos(wunderlist);
 		}, reloadInterval);
 	};
 
@@ -105,16 +161,14 @@ var Fetcher = function(
    * Initiate fetchTodos();
    */
 	this.startFetch = function() {
-		fetchTodos();
+		fetchTodos(wunderlist);
 	};
 
 	/* broadcastItems()
    * Broadcast the exsisting items.
    */
 	this.broadcastItems = function() {
-		if (items.length <= 0) {
-			return;
-		}
+
 		itemsReceivedCallback(self);
 	};
 

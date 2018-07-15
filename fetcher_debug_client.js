@@ -8,6 +8,8 @@
  */
 
 var Fetcher = require("./fetcher.js");
+var accessToken = ""
+var clientID = ""
 
 function createFetcher(listID, list, reloadInterval, accessToken, clientID) {
 	var self = this;
@@ -34,7 +36,7 @@ function createFetcher(listID, list, reloadInterval, accessToken, clientID) {
 		});
 
 		fetchers[listID] = {
-			name: list,
+			listID,
 			instance: fetcher
 		};
 	} else {

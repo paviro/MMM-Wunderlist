@@ -1,28 +1,29 @@
 {
-  "name": "Magic-Mirror-Module-Wunderlist",
-  "description": "Wunderlist module for the Magic Mirror.",
-  "version": "2.0.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/paviro/MMM-Wunderlist"
-  },
-  "keywords": [
-    "magic mirror",
-    "smart mirror",
-    "wunderlist",
-    "module"
-  ],
-  "author": "Paul-Vincent Roll",
-  "contributors": [
-    "https://github.com/paviro/MMM-Wunderlist/graphs/contributors"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/paviro/MMM-Wunderlist/issues"
-  },
-  "homepage": "https://github.com/paviro/MMM-Wunderlist#readme",
-  "dependencies": {
-    "wunderlist": "latest",
-    "moment": "latest"
-  }
+	"name": "Magic-Mirror-Module-Wunderlist",
+	"description": "Wunderlist module for the Magic Mirror.",
+	"version": "2.0.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/paviro/MMM-Wunderlist"
+	},
+	"keywords": [
+		"magic mirror",
+		"smart mirror",
+		"wunderlist",
+		"module"
+	],
+	"author": "Paul-Vincent Roll",
+	"contributors": [
+		"https://github.com/paviro/MMM-Wunderlist/graphs/contributors"
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/paviro/MMM-Wunderlist/issues"
+	},
+	"homepage": "https://github.com/paviro/MMM-Wunderlist#readme",
+	"dependencies": {
+		"moment": "latest",
+		"request": "^2.86.0",
+		"request-promise": "^4.2.2"
+	}
 }
