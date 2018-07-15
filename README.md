@@ -1,5 +1,8 @@
 # MMM-Wunderlist
-This an extension for the [MagicMirror](https://github.com/MichMich/MagicMirror). It can display your Wunderlist todos. You can add multiple instances with different lists. Only one account supported.
+This an extension for the [MagicMirror](https://github.com/MichMich/MagicMirror). It can display your Wunderlist todos. You can add multiple instances from different accounts with different lists.
+
+![MMM-Wunderlist Screenshot](screenshots/screen_cap1.png?raw=true "Title")
+
 
 ## Installation
 1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/paviro/MMM-Wunderlist.git`. A new folder will appear navigate into it.
@@ -21,6 +24,18 @@ modules: [
 ]
 ````
 
+## Retrieving API Token
+*FYI: There is no additional registration required, you may use your Wunderlist Creds*
+
+Go to [Developer.Wunderlist](https://developer.wunderlist.com/apps/new). It does not really matter what you type in here, so you may go with:
+```
+Name: MMM-Wunderlist
+APP URL: http://localhost
+AUTH CALLBACK URL: http://localhost
+```
+
+Hit *save* and you'll be displayed your `clientID`. Click on *create access token*
+ and you'll get the `accessToken`. 
 ## Configuration options
 
 The following properties can be configured:
@@ -129,7 +144,9 @@ The following properties can be configured:
 - [Moment](https://www.npmjs.com/package/moment) (installed via `npm install`)
 
 ## Known issues
-- some of requests for users list returns 404 error
+- After changing your password you'll have to generate a new API-Token 
+- When you grant access to a new user and set `showAssignee: true` , you might have to restart MM to correctly display the assignees
+- Some of requests for users list returns 404 error
 
 The MIT License (MIT)
 =====================

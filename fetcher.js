@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 /* Magic Mirror
  * Fetcher
@@ -7,8 +7,8 @@
  * MIT Licensed.
  */
 
-var WunderlistSDK = require('wunderlist');
-var moment = require('moment');
+var WunderlistSDK = require("wunderlist");
+var moment = require("moment");
 
 /* Fetcher
  * Responsible for requesting an update on the set interval and broadcasting the data.
@@ -17,116 +17,122 @@ var moment = require('moment');
  * attribute reloadInterval number - Reload interval in milliseconds.
  */
 
-var Fetcher = function (listID, reloadInterval, accessToken, clientID, language, format) {
+var Fetcher = function(
+	listID,
+	reloadInterval,
+	accessToken,
+	clientID,
+	language,
+	format
+) {
+	moment.locale(language);
 
-  moment.locale(language);
+	var self = this;
+	if (reloadInterval < 1000) {
+		reloadInterval = 1000;
+	}
 
-  var self = this;
-  if (reloadInterval < 1000) {
-    reloadInterval = 1000;
-  }
+	var reloadTimer = null;
+	var items = [];
 
-  var reloadTimer = null;
-  var items = [];
+	var fetchFailedCallback = function() {};
+	var itemsReceivedCallback = function() {};
 
-  var fetchFailedCallback = function () { };
-  var itemsReceivedCallback = function () { };
+	/* private methods */
 
-  /* private methods */
-
-  /* fetchTodos()
+	/* fetchTodos()
    * Request the new items.
    */
 
-  var fetchTodos = function () {
-    clearTimeout(reloadTimer);
-    reloadTimer = null;
+	var fetchTodos = function() {
+		clearTimeout(reloadTimer);
+		reloadTimer = null;
 
-    var WunderlistAPI = new WunderlistSDK({
-      accessToken: accessToken,
-      clientID: clientID
-    });
+		var WunderlistAPI = new WunderlistSDK({
+			accessToken: accessToken,
+			clientID: clientID
+		});
 
-    WunderlistAPI.http.tasks.forList(listID)
-      .done(function (tasks) {
-        items = localizeTasks(tasks);
-        self.broadcastItems();
-        scheduleTimer();
-      })
-      .fail(function (resp, code) {
-        console.error('there was a Wunderlist problem', resp, code);
-      });
+		WunderlistAPI.http.tasks
+			.forList(listID)
+			.done(function(tasks) {
+				items = localizeTasks(tasks);
+				self.broadcastItems();
+				scheduleTimer();
+			})
+			.fail(function(resp, code) {
+				console.error("there was a Wunderlist problem", resp, code);
+			});
+	};
 
-  };
-
-  /* localizeTasks(tasks)
+	/* localizeTasks(tasks)
    * Localize the given array of tasks
    */
-  
-  var localizeTasks = function (tasks) {
-    tasks.forEach(function (task) {
-      task.due_date = moment(task.due_date).format(format);
-      task.created_at = moment(task.created_at).format(format);
-    });
-    return tasks;
-  }
 
-  /* scheduleTimer()
+	var localizeTasks = function(tasks) {
+		tasks.forEach(function(task) {
+			task.due_date = moment(task.due_date).format(format);
+			task.created_at = moment(task.created_at).format(format);
+		});
+		return tasks;
+	};
+
+	/* scheduleTimer()
    * Schedule the timer for the next update.
    */
 
-  var scheduleTimer = function () {
-    clearTimeout(reloadTimer);
-    reloadTimer = setTimeout(function () {
-      fetchTodos();
-    }, reloadInterval);
-  };
+	var scheduleTimer = function() {
+		clearTimeout(reloadTimer);
+		reloadTimer = setTimeout(function() {
+			fetchTodos();
+		}, reloadInterval);
+	};
 
-  /* public methods */
+	/* public methods */
 
-  /* setReloadInterval()
+	/* setReloadInterval()
    * Update the reload interval, but only if we need to increase the speed.
    *
    * attribute interval number - Interval for the update in milliseconds.
    */
-  this.setReloadInterval = function (interval) {
-    if (interval > 1000 && interval < reloadInterval) {
-      reloadInterval = interval;
-    }
-  };
+	this.setReloadInterval = function(interval) {
+		if (interval > 1000 && interval < reloadInterval) {
+			reloadInterval = interval;
+		}
+	};
 
-  /* startFetch()
+	/* startFetch()
    * Initiate fetchTodos();
    */
-  this.startFetch = function () {
-    fetchTodos();
-  };
+	this.startFetch = function() {
+		fetchTodos();
+	};
 
-  /* broadcastItems()
+	/* broadcastItems()
    * Broadcast the exsisting items.
    */
-  this.broadcastItems = function () {
-    if (items.length <= 0) {
-      return;
-    }
-    itemsReceivedCallback(self);
-  };
+	this.broadcastItems = function() {
+		if (items.length <= 0) {
+			return;
+		}
+		itemsReceivedCallback(self);
+	};
 
-  this.onReceive = function (callback) {
-    itemsReceivedCallback = callback;
-  };
+	this.onReceive = function(callback) {
+		itemsReceivedCallback = callback;
+	};
 
-  this.onError = function (callback) {
-    fetchFailedCallback = callback;
-  };
+	this.onError = function(callback) {
+		fetchFailedCallback = callback;
+	};
 
-  this.id = function () {
-    return listID;
-  };
+	this.id = function() {
+		return listID;
+	};
 
-  this.items = function () {
-    return items;
-  };
+	this.items = function() {
+		return items;
+	};
 };
 
 module.exports = Fetcher;
