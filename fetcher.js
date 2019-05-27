@@ -64,7 +64,6 @@ var Fetcher = function(
 							// Wunderlist is known to occasionally have interal server-errors
 							if (isWunderlistAPIError(err) && revision != 0) {
 								console.log("Wunderlist returned an internal server-error. Recovering.")
-								scheduleTimer();
 							} else {
 								console.error(
 									"Failed to retrieve list: " +
@@ -77,6 +76,8 @@ var Fetcher = function(
 										err.stack
 								);
 							}
+
+							scheduleTimer();
 						});
 				} else {
 					scheduleTimer();
@@ -88,7 +89,6 @@ var Fetcher = function(
 				// Wunderlist is known to occasionally have interal server-errors
 				if (isWunderlistAPIError(err) && revision != 0) {
 					console.log("Wunderlist returned an internal server-error. Recovering.")
-					scheduleTimer();
 				} else {
 					console.error(
 						"Failed to retrieve status for list: " +
@@ -101,6 +101,8 @@ var Fetcher = function(
 							err.stack
 					);
 				}
+
+				scheduleTimer();
 			});
 	};
 
