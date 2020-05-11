@@ -144,6 +144,7 @@ The following properties can be configured:
 ## Dependencies
 - [Wunderlist](https://www.npmjs.com/package/wunderlist) (installed via `npm install`)
 - [Moment](https://www.npmjs.com/package/moment) (installed via `npm install`)
+- [Request-Promise](https://www.npmjs.com/package/request-promise) (installed via `npm install`)
 
 ## Known issues
 - After changing your password you'll have to generate a new API-Token 
