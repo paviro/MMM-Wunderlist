@@ -1,4 +1,6 @@
 # MMM-Wunderlist
+**Note: As of May 6, 2020, Microsoft has ended support for Wunderlist. Syncing between devices is no longer possible.**
+
 This an extension for the [MagicMirror](https://github.com/MichMich/MagicMirror). It can display your Wunderlist todos. You can add multiple instances from different accounts with different lists.
 
 ![MMM-Wunderlist Screenshot](screenshots/screen_cap1.png?raw=true "Title")
